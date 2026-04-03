@@ -1,5 +1,6 @@
 from transformers import pipeline
 import torch
+from typing import List, Optional
 from functools import lru_cache
 
 class NLPModels:
@@ -13,13 +14,17 @@ class NLPModels:
 
     def _init_models(self):
         device = 0 if torch.cuda.is_available() else -1
-        # Multilingual Sentiment (supports Hindi, Telugu, Bengali etc.)
+        
+        # Multilingual Sentiment Model (supports Hindi, Telugu, Bengali, etc.)
+        print("Loading sentiment model... (first time will download ~500MB)")
         self.sentiment_pipeline = pipeline(
             "text-classification",
             model="tabularisai/multilingual-sentiment-analysis",
             device=device
         )
-        # Zero-shot Topic Classification (excellent multilingual support)
+        
+        # Zero-shot Topic Classification (works well with Indian languages)
+        print("Loading topic model... (first time will download ~1.6GB)")
         self.topic_pipeline = pipeline(
             "zero-shot-classification",
             model="facebook/bart-large-mnli",
@@ -31,10 +36,15 @@ class NLPModels:
             candidate_topics = ["politics", "sports", "technology", "entertainment", 
                               "business", "health", "education", "science", "travel"]
 
-        # Sentiment (5 classes: Very Negative to Very Positive)
+        # Sentiment prediction
         sent_result = self.sentiment_pipeline(text)[0]
-        # Topic
-        topic_result = self.topic_pipeline(text, candidate_labels=candidate_topics, multi_label=False)
+        
+        # Topic prediction
+        topic_result = self.topic_pipeline(
+            text, 
+            candidate_labels=candidate_topics, 
+            multi_label=False
+        )
 
         return {
             "sentiment": {

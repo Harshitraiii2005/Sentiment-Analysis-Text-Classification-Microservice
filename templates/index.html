@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Indic NLP Classifier</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body { background-color: #f8f9fa; }
+        .card { box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+        .sentiment-positive { color: #28a745; font-weight: bold; }
+        .sentiment-negative { color: #dc3545; font-weight: bold; }
+        .result-box { background-color: #fff; border-radius: 8px; padding: 20px; margin-top: 20px; }
+    </style>
+</head>
+<body>
+    <div class="container py-5">
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <div class="text-center mb-5">
+                    <h1 class="display-5 fw-bold">Indic Sentiment & Topic Classifier</h1>
+                    <p class="lead text-muted">Multilingual NLP powered by Hugging Face Transformers</p>
+                </div>
+
+                <!-- Input Form -->
+                <div class="card">
+                    <div class="card-body">
+                        <form method="post" action="/ui-predict">
+                            <div class="mb-3">
+                                <label class="form-label fw-semibold">Enter Text (English or Hindi supported)</label>
+                                <textarea name="text" class="form-control" rows="4" placeholder="Type your text here..." required>{{ text or '' }}</textarea>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label class="form-label fw-semibold">Candidate Topics (comma separated)</label>
+                                <input type="text" name="topics" class="form-control" 
+                                       value="{{ topics or 'politics,sports,technology,entertainment,business,health,education' }}">
+                                <div class="form-text">Leave default or customize</div>
+                            </div>
+
+                            <button type="submit" class="btn btn-primary btn-lg w-100">Analyze Text</button>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Result Section -->
+                {% if result %}
+                <div class="result-box mt-4">
+                    <h4 class="mb-3">Analysis Result</h4>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h5>Sentiment</h5>
+                            <p class="{% if 'positive' in result.sentiment.label.lower() %}sentiment-positive{% else %}sentiment-negative{% endif %} fs-4">
+                                {{ result.sentiment.label }} ({{ (result.sentiment.score * 100)|round(1) }}%)
+                            </p>
+                        </div>
+                        <div class="col-md-6">
+                            <h5>Top Topic</h5>
+                            <p class="fs-4">
+                                {{ result.topic.label }} ({{ (result.topic.score * 100)|round(1) }}%)
+                            </p>
+                        </div>
+                    </div>
+
+                    <hr>
+                    <h6>Full Topic Scores</h6>
+                    <div class="row">
+                        {% for topic, score in result.full_topic_scores.items() %}
+                        <div class="col-6 col-sm-4 mb-2">
+                            <strong>{{ topic }}</strong>: {{ (score * 100)|round(1) }}%
+                        </div>
+                        {% endfor %}
+                    </div>
+
+                    <div class="mt-3 text-muted small">
+                        Processed in {{ latency }} ms
+                    </div>
+                </div>
+                {% endif %}
+
+                <div class="text-center mt-5">
+                    <a href="/docs" target="_blank" class="btn btn-outline-secondary">View Swagger API Docs →</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
