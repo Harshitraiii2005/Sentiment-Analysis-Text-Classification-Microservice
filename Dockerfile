@@ -2,7 +2,6 @@
 FROM python:3.12-slim AS builder
 WORKDIR /app
 
-# Install dependencies
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
@@ -10,25 +9,24 @@ RUN pip install --no-cache-dir -r requirements.txt
 FROM python:3.12-slim
 WORKDIR /app
 
-# Copy installed packages from builder stage
+# Copy Python packages and uvicorn from builder
 COPY --from=builder /usr/local/lib/python3.12/site-packages /usr/local/lib/python3.12/site-packages
 COPY --from=builder /usr/local/bin/uvicorn /usr/local/bin/uvicorn
 
-# Copy application code
+# Copy app code
 COPY app/ ./app/
 
-# Pre-download models during build (reduces cold start dramatically)
+# Pre-download models (safer single-line style with ; separators)
 RUN python -c "
-from transformers import pipeline
-import torch
-print('Downloading sentiment model (nlptown multilingual 1-5 stars)...')
-pipeline('text-classification', model='nlptown/bert-base-multilingual-uncased-sentiment')
-print('Downloading topic model (mDeBERTa multilingual zero-shot)...')
-pipeline('zero-shot-classification', model='MoritzLaurer/mDeBERTa-v3-base-mnli-xnli')
-print('All models downloaded successfully!')
-"
+    import torch
+    from transformers import pipeline
+    print('Downloading sentiment model...')
+    pipeline('text-classification', model='nlptown/bert-base-multilingual-uncased-sentiment')
+    print('Downloading topic model...')
+    pipeline('zero-shot-classification', model='MoritzLaurer/mDeBERTa-v3-base-mnli-xnli')
+    print('✅ All models downloaded successfully!')
+    "
 
 EXPOSE 8000
 
-# Run uvicorn (2 workers is good balance for CPU + transformer inference)
 CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "2"]

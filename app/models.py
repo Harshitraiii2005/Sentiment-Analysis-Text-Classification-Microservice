@@ -1,7 +1,6 @@
 from transformers import pipeline
 import torch
 from typing import List, Optional
-from functools import lru_cache
 
 class NLPModels:
     _instance = None
@@ -15,19 +14,19 @@ class NLPModels:
     def _init_models(self):
         device = 0 if torch.cuda.is_available() else -1
         
-        # Multilingual Sentiment Model (supports Hindi, Telugu, Bengali, etc.)
-        print("Loading sentiment model... (first time will download ~500MB)")
+        # Sentiment: 5-star multilingual model (good for Hindi/Hinglish)
+        print("Loading sentiment model (nlptown 1-5 stars)...")
         self.sentiment_pipeline = pipeline(
             "text-classification",
-            model="tabularisai/multilingual-sentiment-analysis",
+            model="nlptown/bert-base-multilingual-uncased-sentiment",
             device=device
         )
         
-        # Zero-shot Topic Classification (works well with Indian languages)
-        print("Loading topic model... (first time will download ~1.6GB)")
+        # Topic: Faster multilingual zero-shot model
+        print("Loading fast topic model (mDeBERTa)...")
         self.topic_pipeline = pipeline(
             "zero-shot-classification",
-            model="facebook/bart-large-mnli",
+            model="MoritzLaurer/mDeBERTa-v3-base-mnli-xnli",
             device=device
         )
 
