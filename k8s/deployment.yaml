@@ -1,4 +1,3 @@
-# deployment.yaml
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -18,7 +17,7 @@ spec:
     spec:
       containers:
       - name: indic-nlp
-        image: your-docker-image:tag          # ← CHANGE THIS
+        image: harshitrai20/indie-nlp:latest         # ← CHANGE THIS
         imagePullPolicy: IfNotPresent
         ports:
         - containerPort: 8000
