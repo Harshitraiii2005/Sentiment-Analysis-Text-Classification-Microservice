@@ -2,31 +2,34 @@ FROM python:3.11-slim
 
 WORKDIR /app
 
-# Update system packages and install CA certificates (critical for SSL)
+# Install system dependencies for SSL
 RUN apt-get update && \
     apt-get install -y --no-install-recommends ca-certificates openssl && \
     update-ca-certificates && \
     rm -rf /var/lib/apt/lists/*
 
-# Upgrade pip with trusted hosts
+# Upgrade pip
 RUN pip install --no-cache-dir --upgrade pip \
     --trusted-host pypi.org \
     --trusted-host pypi.python.org \
     --trusted-host files.pythonhosted.org
 
-# Copy and install requirements with maximum tolerance for SSL issues
+# Install Python packages with SSL verification disabled (this is the key for your environment)
 COPY requirements.txt .
-RUN pip install --no-cache-dir \
+RUN PIP_DISABLE_PIP_VERSION_CHECK=1 \
+    pip install --no-cache-dir \
     --trusted-host pypi.org \
     --trusted-host pypi.python.org \
     --trusted-host files.pythonhosted.org \
+    --disable-pip-version-check \
+    --no-deps \
     -r requirements.txt
 
-# Copy application code
+# Copy your app code
 COPY app/ ./app/
 COPY templates/ ./templates/
 COPY main.py .
-COPY static/ ./static/ 
+COPY static/ ./static/ || true
 
 EXPOSE 8000
 
