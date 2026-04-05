@@ -2,16 +2,19 @@ FROM python:3.11-slim
 
 WORKDIR /app
 
-# Install system CA certificates + update them (fixes most SSL issues in slim images)
+# Update system packages and install CA certificates (critical for SSL)
 RUN apt-get update && \
-    apt-get install -y --no-install-recommends ca-certificates && \
+    apt-get install -y --no-install-recommends ca-certificates openssl && \
     update-ca-certificates && \
     rm -rf /var/lib/apt/lists/*
 
-# Upgrade pip first (helps with newer SSL handling)
-RUN pip install --no-cache-dir --upgrade pip
+# Upgrade pip with trusted hosts
+RUN pip install --no-cache-dir --upgrade pip \
+    --trusted-host pypi.org \
+    --trusted-host pypi.python.org \
+    --trusted-host files.pythonhosted.org
 
-# Install dependencies with trusted hosts as fallback
+# Copy and install requirements with maximum tolerance for SSL issues
 COPY requirements.txt .
 RUN pip install --no-cache-dir \
     --trusted-host pypi.org \
