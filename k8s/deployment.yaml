@@ -1,0 +1,46 @@
+# deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: indic-nlp
+  namespace: indic-nlp
+  labels:
+    app: indic-nlp
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: indic-nlp
+  template:
+    metadata:
+      labels:
+        app: indic-nlp
+    spec:
+      containers:
+      - name: indic-nlp
+        image: your-docker-image:tag          # ← CHANGE THIS
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 8000
+        resources:
+          requests:
+            cpu: "500m"
+            memory: "1Gi"
+          limits:
+            cpu: "1500m"
+            memory: "2Gi"
+        env:
+        - name: REDIS_HOST
+          value: "redis"                      # change if using external Redis
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 8000
+          initialDelaySeconds: 10
+          periodSeconds: 10
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8000
+          initialDelaySeconds: 30
+          periodSeconds: 15

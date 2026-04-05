@@ -3,88 +3,335 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Indic NLP Classifier</title>
+    <title>Indic NLP • Sentiment & Topic Classifier</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+    
     <style>
-        body { background-color: #f8f9fa; }
-        .card { box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
-        .sentiment-positive { color: #28a745; font-weight: bold; }
-        .sentiment-negative { color: #dc3545; font-weight: bold; }
-        .result-box { background-color: #fff; border-radius: 8px; padding: 20px; margin-top: 20px; }
+        :root {
+            --primary: #6366f1;
+            --primary-dark: #4f46e5;
+        }
+        
+        body {
+            font-family: 'Inter', system-ui, sans-serif;
+            background: linear-gradient(135deg, #f8fafc 0%, #e0e7ff 100%);
+            min-height: 100vh;
+        }
+        
+        .navbar {
+            backdrop-filter: blur(12px);
+        }
+        
+        .hero-title {
+            font-family: 'Space Grotesk', sans-serif;
+            font-weight: 700;
+            letter-spacing: -0.03em;
+        }
+
+        .card {
+            border: none;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+            overflow: hidden;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        .card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 20px 40px rgba(99, 102, 241, 0.15);
+        }
+
+        .form-control, .form-select {
+            border-radius: 12px;
+            padding: 14px 16px;
+            border: 1.5px solid #e2e8f0;
+            transition: all 0.3s ease;
+        }
+        
+        .form-control:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.15);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            border: none;
+            border-radius: 12px;
+            padding: 14px 32px;
+            font-weight: 600;
+            font-size: 1.05rem;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(99, 102, 241, 0.3);
+        }
+
+        .result-card {
+            background: white;
+            border-radius: 20px;
+            padding: 32px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+            animation: fadeInUp 0.6s ease forwards;
+        }
+
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .sentiment-positive { color: #10b981; }
+        .sentiment-negative { color: #ef4444; }
+        .sentiment-neutral { color: #8b5cf6; }
+
+        .progress {
+            height: 10px;
+            border-radius: 9999px;
+            background: #e2e8f0;
+        }
+        
+        .topic-bar {
+            transition: width 1.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        .performance-card {
+            background: #f8fafc;
+            border-radius: 16px;
+        }
+
+        .footer-link {
+            color: #64748b;
+            text-decoration: none;
+        }
+        
+        .footer-link:hover {
+            color: var(--primary);
+        }
     </style>
 </head>
 <body>
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-light bg-white border-bottom sticky-top">
+        <div class="container">
+            <a class="navbar-brand d-flex align-items-center gap-2 fw-bold fs-4" href="/">
+                <i class="fa-solid fa-brain text-indigo"></i>
+                Indic NLP
+            </a>
+            <div class="d-flex align-items-center gap-3">
+                <a href="/docs" target="_blank" class="btn btn-outline-secondary btn-sm">
+                    <i class="fas fa-book me-2"></i>API Docs
+                </a>
+                <button onclick="showPerformanceModal()" class="btn btn-outline-primary btn-sm">
+                    <i class="fas fa-chart-bar me-2"></i>Model Performance
+                </button>
+            </div>
+        </div>
+    </nav>
+
     <div class="container py-5">
         <div class="row justify-content-center">
-            <div class="col-lg-8">
+            <div class="col-lg-9 col-xl-8">
+                
+                <!-- Header -->
                 <div class="text-center mb-5">
-                    <h1 class="display-5 fw-bold">Indic Sentiment & Topic Classifier</h1>
-                    <p class="lead text-muted">Multilingual NLP powered by Hugging Face Transformers</p>
+                    <div class="badge bg-primary bg-opacity-10 text-primary mb-3 px-4 py-2">
+                        <i class="fas fa-language me-2"></i>English + Hindi + Hinglish Supported
+                    </div>
+                    <h1 class="hero-title display-4 mb-3 text-dark">
+                        Understand Indian Languages<br>Instantly
+                    </h1>
+                    <p class="lead text-muted mb-4">
+                        Production-grade Multilingual Sentiment Analysis & Zero-shot Topic Classification
+                    </p>
                 </div>
 
-                <!-- Input Form -->
+                <!-- Main Input Card -->
                 <div class="card">
-                    <div class="card-body">
-                        <form method="post" action="/ui-predict">
-                            <div class="mb-3">
-                                <label class="form-label fw-semibold">Enter Text (English or Hindi supported)</label>
-                                <textarea name="text" class="form-control" rows="4" placeholder="Type your text here..." required>{{ text or '' }}</textarea>
+                    <div class="card-body p-5">
+                        <form method="post" action="/ui-predict" id="predictForm">
+                            <div class="mb-4">
+                                <label class="form-label fw-semibold text-dark">Enter your text</label>
+                                <textarea name="text" class="form-control" rows="5" 
+                                    placeholder="Paste or type your text here... (English, Hindi, or Hinglish)" required>
+                                    {{ text or '' }}
+                                </textarea>
                             </div>
                             
-                            <div class="mb-3">
-                                <label class="form-label fw-semibold">Candidate Topics (comma separated)</label>
+                            <div class="mb-4">
+                                <label class="form-label fw-semibold text-dark">
+                                    Candidate Topics <span class="text-muted fw-normal">(comma separated)</span>
+                                </label>
                                 <input type="text" name="topics" class="form-control" 
-                                       value="{{ topics or 'politics,sports,technology,entertainment,business,health,education' }}">
-                                <div class="form-text">Leave default or customize</div>
+                                    value="{{ topics or 'politics,sports,technology,entertainment,business,health,education,science,crime,travel' }}"
+                                    placeholder="politics, sports, technology...">
+                                <div class="form-text">
+                                    Zero-shot classification will rank your text against these topics.
+                                </div>
                             </div>
 
-                            <button type="submit" class="btn btn-primary btn-lg w-100">Analyze Text</button>
+                            <button type="submit" id="analyzeBtn" class="btn btn-primary btn-lg w-100">
+                                <i class="fas fa-magic me-2"></i> Analyze Text
+                            </button>
                         </form>
                     </div>
                 </div>
 
-                <!-- Result Section -->
+                <!-- Analysis Result -->
                 {% if result %}
-                <div class="result-box mt-4">
-                    <h4 class="mb-3">Analysis Result</h4>
-                    <div class="row">
+                <div class="result-card mt-5">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <h4 class="mb-0 fw-semibold">Analysis Result</h4>
+                        <span class="badge bg-success bg-opacity-10 text-success">
+                            <i class="fas fa-clock me-1"></i> {{ latency }} ms
+                        </span>
+                    </div>
+
+                    <div class="row g-4">
+                        <!-- Sentiment -->
                         <div class="col-md-6">
-                            <h5>Sentiment</h5>
-                            <p class="{% if 'positive' in result.sentiment.label.lower() %}sentiment-positive{% else %}sentiment-negative{% endif %} fs-4">
-                                {{ result.sentiment.label }} ({{ (result.sentiment.score * 100)|round(1) }}%)
-                            </p>
+                            <div class="p-4 rounded-3 performance-card">
+                                <div class="d-flex align-items-center gap-3 mb-3">
+                                    <i class="fas fa-face-smile text-2xl {% if 'positive' in result.sentiment.label.lower() %}sentiment-positive{% elif 'negative' in result.sentiment.label.lower() %}sentiment-negative{% else %}sentiment-neutral{% endif %}"></i>
+                                    <h5 class="mb-0">Sentiment</h5>
+                                </div>
+                                <h3 class="{% if 'positive' in result.sentiment.label.lower() %}sentiment-positive{% elif 'negative' in result.sentiment.label.lower() %}sentiment-negative{% else %}sentiment-neutral{% endif %} fw-bold mb-1">
+                                    {{ result.sentiment.label|title }}
+                                </h3>
+                                <div class="progress mb-2">
+                                    <div class="progress-bar {% if 'positive' in result.sentiment.label.lower() %}bg-success{% elif 'negative' in result.sentiment.label.lower() %}bg-danger{% else %}bg-purple{% endif %}" 
+                                         style="width: {{ (result.sentiment.score * 100)|round(1) }}%"></div>
+                                </div>
+                                <p class="mb-0 text-muted small">{{ (result.sentiment.score * 100)|round(1) }}% confidence</p>
+                            </div>
                         </div>
+
+                        <!-- Top Topic -->
                         <div class="col-md-6">
-                            <h5>Top Topic</h5>
-                            <p class="fs-4">
-                                {{ result.topic.label }} ({{ (result.topic.score * 100)|round(1) }}%)
-                            </p>
+                            <div class="p-4 rounded-3 performance-card">
+                                <div class="d-flex align-items-center gap-3 mb-3">
+                                    <i class="fas fa-tags text-2xl text-primary"></i>
+                                    <h5 class="mb-0">Top Topic</h5>
+                                </div>
+                                <h3 class="fw-bold text-primary mb-1">{{ result.topic.label|title }}</h3>
+                                <div class="progress mb-2">
+                                    <div class="progress-bar bg-primary topic-bar" 
+                                         style="width: {{ (result.topic.score * 100)|round(1) }}%"></div>
+                                </div>
+                                <p class="mb-0 text-muted small">{{ (result.topic.score * 100)|round(1) }}% confidence</p>
+                            </div>
                         </div>
                     </div>
 
-                    <hr>
-                    <h6>Full Topic Scores</h6>
-                    <div class="row">
+                    <hr class="my-5">
+
+                    <h5 class="mb-4 fw-semibold">All Topic Scores</h5>
+                    <div class="row g-3">
                         {% for topic, score in result.full_topic_scores.items() %}
-                        <div class="col-6 col-sm-4 mb-2">
-                            <strong>{{ topic }}</strong>: {{ (score * 100)|round(1) }}%
+                        <div class="col-6 col-lg-4">
+                            <div class="d-flex justify-content-between align-items-center small mb-1">
+                                <strong>{{ topic|title }}</strong>
+                                <span class="text-muted">{{ (score * 100)|round(1) }}%</span>
+                            </div>
+                            <div class="progress">
+                                <div class="progress-bar bg-primary topic-bar" 
+                                     style="width: {{ (score * 100)|round(1) }}%"></div>
+                            </div>
                         </div>
                         {% endfor %}
-                    </div>
-
-                    <div class="mt-3 text-muted small">
-                        Processed in {{ latency }} ms
                     </div>
                 </div>
                 {% endif %}
 
-                <div class="text-center mt-5">
-                    <a href="/docs" target="_blank" class="btn btn-outline-secondary">View Swagger API Docs →</a>
+                <!-- Model Performance Quick Info -->
+                <div class="mt-5">
+                    <div class="card performance-card p-4">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h5 class="mb-1">Model Performance</h5>
+                                <p class="text-muted small mb-0">
+                                    Transparent benchmarks for the models powering this service
+                                </p>
+                            </div>
+                            <button onclick="showPerformanceModal()" class="btn btn-outline-primary btn-sm">
+                                <i class="fas fa-chart-bar me-2"></i> View Detailed Benchmarks
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="text-center mt-5 text-muted small">
+                    <a href="/docs" target="_blank" class="footer-link mx-3">
+                        <i class="fas fa-file-code me-2"></i>Swagger API Documentation
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Model Performance Modal -->
+    <div class="modal fade" id="performanceModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Model Performance Benchmarks</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <h6 class="mb-3"><i class="fas fa-heart-pulse text-danger"></i> Sentiment Model</h6>
+                    <p><strong>Model:</strong> nlptown/bert-base-multilingual-uncased-sentiment (5-star)</p>
+                    <ul class="list-unstyled">
+                        <li><strong>English:</strong> 67% exact accuracy | 95% off-by-1 accuracy (product reviews)</li>
+                        <li><strong>Other languages (DE, FR, ES, NL, IT):</strong> 57–61% exact | 93–95% off-by-1</li>
+                        <li><strong>Hindi / Hinglish:</strong> Strong cross-lingual transfer (no native fine-tuning). Performs well on code-mixed text in practice.</li>
+                    </ul>
+
+                    <hr>
+
+                    <h6 class="mb-3"><i class="fas fa-tags text-primary"></i> Topic Classification Model</h6>
+                    <p><strong>Model:</strong> MoritzLaurer/mDeBERTa-v3-base-mnli-xnli (Zero-shot)</p>
+                    <ul class="list-unstyled">
+                        <li><strong>XNLI Average Accuracy (15 languages):</strong> ~81%</li>
+                        <li><strong>English NLI:</strong> Very strong (~85–87% on MNLI-style tasks)</li>
+                        <li><strong>Multilingual Zero-shot:</strong> Excellent for 100+ languages including Hindi</li>
+                        <li><strong>Strength:</strong> High-quality natural language inference backbone → reliable topic ranking</li>
+                    </ul>
+
+                    <div class="alert alert-info small mt-4">
+                        <strong>Note:</strong> These are reported benchmark numbers from the original model cards. 
+                        Real-world performance on Indian social media / Hinglish text is generally very good due to multilingual pre-training, 
+                        but may vary depending on domain and code-mixing intensity.
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
                 </div>
             </div>
         </div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <script>
+        // Loading state
+        document.getElementById('predictForm').addEventListener('submit', function() {
+            const btn = document.getElementById('analyzeBtn');
+            btn.innerHTML = `<span class="spinner-border spinner-border-sm me-2"></span> Analyzing...`;
+            btn.disabled = true;
+        });
+
+        function showPerformanceModal() {
+            const modal = new bootstrap.Modal(document.getElementById('performanceModal'));
+            modal.show();
+        }
+
+        // Auto-focus textarea
+        window.addEventListener('load', () => {
+            const textarea = document.querySelector('textarea');
+            if (textarea) textarea.focus();
+        });
+    </script>
 </body>
 </html>

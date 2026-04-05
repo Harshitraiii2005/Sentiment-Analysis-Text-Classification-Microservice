@@ -1,11 +1,16 @@
+# service.yaml
 apiVersion: v1
 kind: Service
 metadata:
-  name: sentiment-api
+  name: indic-nlp-service
+  namespace: indic-nlp
+  labels:
+    app: indic-nlp
 spec:
   selector:
-    app: sentiment-api
+    app: indic-nlp
   ports:
   - port: 80
     targetPort: 8000
+    protocol: TCP
   type: ClusterIP
