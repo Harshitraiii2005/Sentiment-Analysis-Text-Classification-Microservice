@@ -17,7 +17,7 @@ Analyze **sentiment** and perform **zero-shot topic classification** instantly w
 
 ### 🌐 Live Demo
 
-**Try it now →** [http://34.201.140.128:30080](http://34.201.140.128:30080)
+**Try it now →** [http://98.91.209.242/](http://98.91.209.242/)
 
 Beautiful, responsive web UI with real-time analysis.
 
@@ -166,7 +166,7 @@ If you like this project, please give it a star! ⭐
 
 Made with ❤️ for the Indian developer community.
 
-**Live App**: [http://34.201.140.128:30080](http://34.201.140.128:30080)
+**Live App**: [http://98.91.209.242/](http://98.91.209.242/)
 
 ---
 
