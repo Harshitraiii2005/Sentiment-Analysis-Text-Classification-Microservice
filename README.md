@@ -94,7 +94,7 @@ uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 | `GET`  | `/ready`              | Readiness probe                      |
 | `GET`  | `/docs`               | Swagger UI Documentation             |
 
-**Live Swagger Docs**: [http://34.201.140.128:30080/docs](http://34.201.140.128:30080/docs)
+
 
 ---
 
